@@ -1,5 +1,7 @@
 # Melo
 
+[![CI](https://github.com/overdev-l/Melo/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/overdev-l/Melo/actions/workflows/ci.yml)
+
 Melo 是一个面向个人使用的原生 macOS 系统工具，目标是逐步对齐 Mole 官方桌面端的公开功能与使用体验。实时监控由 Melo 直接使用 macOS 系统接口完成；清理、软件卸载、维护和空间分析当前复用已安装的 [Mole CLI](https://github.com/tw93/mole)。
 
 当前版本包含：
