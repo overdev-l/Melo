@@ -44,11 +44,21 @@ mkdir -p "$release_dir" "$staging_root/image"
 /bin/ln -s /Applications "$staging_root/image/Applications"
 /bin/rm -f "$zip_path" "$dmg_path" "$checksums_path"
 /usr/bin/ditto -c -k --keepParent "$app_path" "$zip_path"
-/usr/sbin/diskutil image create from \
-    --format UDZO \
-    --volumeName "Melo $version" \
-    "$staging_root/image" \
-    "$dmg_path" >/dev/null
+if [[ "${MELO_USE_LEGACY_HDIUTIL:-0}" != "1" ]] && \
+    /usr/sbin/diskutil help image create from 2>&1 | /usr/bin/grep -q -- '--volumeName'; then
+    /usr/sbin/diskutil image create from \
+        --format UDZO \
+        --volumeName "Melo $version" \
+        "$staging_root/image" \
+        "$dmg_path" >/dev/null
+else
+    /usr/bin/hdiutil create \
+        -volname "Melo $version" \
+        -srcfolder "$staging_root/image" \
+        -format UDZO \
+        -ov \
+        "$dmg_path" >/dev/null
+fi
 
 (
     cd "$release_dir"
