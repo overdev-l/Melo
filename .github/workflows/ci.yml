@@ -10,7 +10,7 @@ jobs:
     runs-on: macos-14
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7.0.1
       - name: Test
         run: swift test
       - name: Build ad-hoc preview
@@ -20,7 +20,7 @@ jobs:
       - name: Package preview
         run: ./scripts/package-release.sh
       - name: Upload preview artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: Melo-unsigned-preview
           path: |
