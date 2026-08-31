@@ -1,0 +1,73 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*-preview*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing preview tag to package and publish
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ inputs.tag || github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  package-and-publish:
+    runs-on: macos-14
+    timeout-minutes: 30
+    env:
+      GH_TOKEN: ${{ github.token }}
+      RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
+    steps:
+      - name: Check out release tag
+        uses: actions/checkout@v7.0.1
+        with:
+          ref: ${{ inputs.tag || github.ref }}
+      - name: Validate preview tag and bundle version
+        id: metadata
+        shell: zsh {0}
+        run: |
+          set -euo pipefail
+          version="$(plutil -extract CFBundleShortVersionString raw -o - Resources/Info.plist)"
+          [[ "$RELEASE_TAG" == "v${version}-"* ]] || {
+            print -u2 "Preview tag $RELEASE_TAG must start with v${version}-"
+            exit 1
+          }
+          git rev-parse --verify "refs/tags/$RELEASE_TAG^{commit}" >/dev/null
+          print "version=$version" >> "$GITHUB_OUTPUT"
+      - name: Refuse to overwrite an existing hosted release
+        run: |
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            echo "Release $RELEASE_TAG already exists; refusing to replace hosted assets." >&2
+            exit 1
+          fi
+      - name: Test
+        run: swift test
+      - name: Build ad-hoc preview
+        run: ./scripts/build-app.sh
+      - name: Verify app bundle
+        run: ./scripts/verify-app.sh
+      - name: Package DMG and ZIP
+        run: ./scripts/package-release.sh
+      - name: Publish hosted preview packages
+        shell: zsh {0}
+        run: |
+          set -euo pipefail
+          gh release create "$RELEASE_TAG" \
+            dist/release/*.dmg \
+            dist/release/*.zip \
+            dist/release/SHA256SUMS.txt \
+            --verify-tag \
+            --title "Melo ${{ steps.metadata.outputs.version }} Preview" \
+            --prerelease \
+            --latest=false \
+            --generate-notes \
+            --notes "Automated unsigned preview build. Hardware Helper registration and AppleSMC writes are disabled until Developer ID signing and notarization are configured."
+

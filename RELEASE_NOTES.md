@@ -1,4 +1,4 @@
-# Melo 0.2.0 Preview
+# Melo 0.2.1 Preview
 
 这是 Melo 的首个公开预览版本，提供原生 macOS 图形界面，覆盖 Clean、Software、Optimize、Analyze、Status、Doctor、菜单栏 HUD 与日常工具的主要流程。
 

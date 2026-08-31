@@ -36,3 +36,4 @@ jobs:
             dist/release/*.dmg
             dist/release/SHA256SUMS.txt
           if-no-files-found: error
+          retention-days: 14

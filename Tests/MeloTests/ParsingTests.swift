@@ -200,10 +200,7 @@ final class ParsingTests: XCTestCase {
         child.standardOutput = FileHandle.nullDevice
         child.standardError = FileHandle.nullDevice
         try child.run()
-        defer {
-            if child.isRunning { child.terminate() }
-            child.waitUntilExit()
-        }
+        defer { stopTestProcess(child) }
 
         let sampler = NativeSystemSampler()
         _ = await sampler.sample()
@@ -220,10 +217,7 @@ final class ParsingTests: XCTestCase {
         child.executableURL = URL(fileURLWithPath: "/bin/sleep")
         child.arguments = ["10"]
         try child.run()
-        defer {
-            if child.isRunning { child.terminate() }
-            child.waitUntilExit()
-        }
+        defer { stopTestProcess(child) }
         guard let identity = ProcessIdentity.current(pid: child.processIdentifier) else {
             return XCTFail("无法读取测试子进程身份")
         }
@@ -252,10 +246,7 @@ final class ParsingTests: XCTestCase {
         child.executableURL = URL(fileURLWithPath: "/bin/sh")
         child.arguments = ["-c", "trap '' TERM; exec /bin/sleep 10"]
         try child.run()
-        defer {
-            if child.isRunning { Darwin.kill(child.processIdentifier, SIGKILL) }
-            child.waitUntilExit()
-        }
+        defer { stopTestProcess(child) }
         try await Task.sleep(for: .milliseconds(100))
         guard let identity = ProcessIdentity.current(pid: child.processIdentifier) else {
             return XCTFail("无法读取测试子进程身份")
@@ -1241,6 +1232,21 @@ final class ParsingTests: XCTestCase {
             homeDirectory: URL(fileURLWithPath: "/Users/example")
         )
         XCTAssertEqual(text, "Bundle: ~/Applications/Melo.app")
+    }
+
+    private func stopTestProcess(_ process: Process) {
+        guard process.isRunning else { return }
+        process.terminate()
+        let terminateDeadline = Date().addingTimeInterval(1)
+        while process.isRunning, Date() < terminateDeadline {
+            Thread.sleep(forTimeInterval: 0.01)
+        }
+        guard process.isRunning else { return }
+        Darwin.kill(process.processIdentifier, SIGKILL)
+        let killDeadline = Date().addingTimeInterval(1)
+        while process.isRunning, Date() < killDeadline {
+            Thread.sleep(forTimeInterval: 0.01)
+        }
     }
 }
 

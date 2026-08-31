@@ -33,6 +33,16 @@ Melo 不包含或修改 Mole 源码，也不隶属于 Mole 或其作者。所有
 
 公开仓库的 CI 会生成 `unsigned-preview` ZIP 与 DMG，用于检查界面和只读功能。它们没有 Apple 公证，不能视为正式分发版本；无 Team ID 的预览构建会主动禁用硬件 Helper 注册和 AppleSMC 写入。建议当前用户从源码构建。
 
+- `CI` 流水线在 `main` 推送和 Pull Request 上执行测试、构建、校验与打包，构建产物作为 GitHub Actions Artifact 保留 14 天。
+- `Release` 流水线在推送 `v<版本>-preview...` 标签后，从该标签重新构建并自动创建 GitHub Pre-release；DMG、ZIP 与 SHA-256 校验文件由 GitHub Releases 长期托管。
+
+例如发布当前预览版本：
+
+```bash
+git tag v0.2.1-preview
+git push origin v0.2.1-preview
+```
+
 正式下载包需要 Developer ID Application 签名、Apple 公证和真机硬件写入验收。项目不会建议用户关闭 Gatekeeper 或绕过 macOS 安全警告。
 
 ## 环境要求
