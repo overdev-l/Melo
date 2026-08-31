@@ -18,15 +18,15 @@ release_dir="$project_root/dist/release"
 "$project_root/scripts/verify-app.sh" "$app_path"
 
 version="$(plutil -extract CFBundleShortVersionString raw -o - "$app_path/Contents/Info.plist")"
-print -r -- "$version" | rg -q '^[0-9]+([.][0-9]+){1,3}([+-][0-9A-Za-z.-]+)?$' || {
+print -r -- "$version" | /usr/bin/grep -Eq '^[0-9]+([.][0-9]+){1,3}([+-][0-9A-Za-z.-]+)?$' || {
     print -u2 "Unsafe bundle version: $version"
     exit 1
 }
 
 signature_details="$(codesign -dvvv "$app_path" 2>&1)"
-if print -r -- "$signature_details" | rg -q '^Authority=Developer ID Application:'; then
+if print -r -- "$signature_details" | /usr/bin/grep -Eq '^Authority=Developer ID Application:'; then
     package_kind="notarization-pending"
-elif print -r -- "$signature_details" | rg -q '^Authority=Apple Development:'; then
+elif print -r -- "$signature_details" | /usr/bin/grep -Eq '^Authority=Apple Development:'; then
     package_kind="development-preview"
 else
     package_kind="unsigned-preview"

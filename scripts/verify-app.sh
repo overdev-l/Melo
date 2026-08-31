@@ -44,11 +44,11 @@ bundle_program="$(plutil -extract BundleProgram raw -o - "$daemon_plist")"
 }
 
 if [[ -n "$app_team" && "$app_team" != "not set" ]]; then
-    print -r -- "$app_details" | rg -q 'flags=.*runtime' || {
+    print -r -- "$app_details" | /usr/bin/grep -Eq 'flags=.*runtime' || {
         print -u2 "Signed app is missing Hardened Runtime"
         exit 1
     }
-    print -r -- "$helper_details" | rg -q 'flags=.*runtime' || {
+    print -r -- "$helper_details" | /usr/bin/grep -Eq 'flags=.*runtime' || {
         print -u2 "Signed helper is missing Hardened Runtime"
         exit 1
     }
