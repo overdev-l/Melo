@@ -1,0 +1,6 @@
+#!/bin/sh
+
+# Mole status queries Finder for purgeable space. Melo supplies this no-op only
+# for the read-only status subprocess so first launch never asks for Automation
+# access. Mole then falls back to diskutil, as designed by its status collector.
+exit 1
